@@ -1,0 +1,8 @@
+node_modules/
+yap_media.db
+yap_media.db-shm
+yap_media.db-wal
+.env
+.cache/covers/*.jpg
+.cache/covers/*.png
+.cache/covers/*.webp

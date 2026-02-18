@@ -1,0 +1,60 @@
+services:
+
+  # -----------------------------------------------------------------------
+  # Backend — Node.js/Express API + SQLite
+  # -----------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV:   production
+      PORT:       3000
+      # Change JWT_SECRET before deploying. Set it in your .env file.
+      JWT_SECRET: ${JWT_SECRET:-please-change-this-secret-before-deploying}
+      # Paths inside the container; both land in the yap-data named volume.
+      DB_PATH:    /data/yap_media.db
+      COVERS_DIR: /data/covers
+      # Not strictly needed behind the nginx proxy, but kept for direct-access scenarios.
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    volumes:
+      # Persistent data (database + album art cache)
+      - yap-data:/data
+      # Mount your music library read-only.
+      # Set MUSIC_DIR in .env or export it before running docker compose.
+      - ${MUSIC_DIR:-./music}:/music:ro
+    # Backend is not exposed directly — all traffic routes through nginx.
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+
+  # -----------------------------------------------------------------------
+  # Frontend — Vue 3 SPA served by nginx, which also proxies /api/* calls
+  # -----------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Empty string → axios uses relative URLs → nginx proxies them to backend.
+        # To expose the API on a custom host (e.g. for mobile clients on the LAN
+        # connecting directly), override with: VITE_API_BASE_URL=http://192.168.1.x
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+# -----------------------------------------------------------------------
+# Volumes
+# -----------------------------------------------------------------------
+volumes:
+  # All persistent backend data lives here (DB + covers cache).
+  # Docker manages the location on the host; use `docker volume inspect yap_yap-data`
+  # to find it, or replace with a bind mount if you prefer an explicit path.
+  yap-data:

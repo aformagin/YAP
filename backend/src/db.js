@@ -1,0 +1,58 @@
+'use strict';
+
+const Database = require('better-sqlite3');
+const path = require('path');
+const bcrypt = require('bcrypt');
+
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'yap_media.db');
+const db = new Database(DB_PATH);
+
+// WAL mode for better read concurrency
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+// Users table
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    is_admin INTEGER DEFAULT 0,
+    must_change_password INTEGER DEFAULT 1,
+    theme_preference TEXT DEFAULT 'light',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
+
+// Media table
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS media (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    artist TEXT,
+    album TEXT,
+    genre TEXT,
+    duration INTEGER,
+    file_path TEXT UNIQUE NOT NULL,
+    cover_path TEXT,
+    bitrate INTEGER,
+    format TEXT
+  )
+`).run();
+
+// Indexes for common query patterns
+db.prepare('CREATE INDEX IF NOT EXISTS idx_media_artist ON media(artist)').run();
+db.prepare('CREATE INDEX IF NOT EXISTS idx_media_album ON media(album)').run();
+db.prepare('CREATE INDEX IF NOT EXISTS idx_media_title ON media(title)').run();
+
+// Seed default admin on first run
+const row = db.prepare('SELECT count(*) as count FROM users').get();
+if (row.count === 0) {
+  const hash = bcrypt.hashSync('YAPAdmin!', 12);
+  db.prepare(
+    'INSERT INTO users (username, password_hash, is_admin, must_change_password) VALUES (?, ?, ?, ?)'
+  ).run('Admin', hash, 1, 1);
+  console.log('[DB] Default admin created — username: Admin, password: YAPAdmin!');
+}
+
+module.exports = db;

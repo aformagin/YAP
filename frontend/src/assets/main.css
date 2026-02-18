@@ -1,0 +1,273 @@
+/* =========================================
+   YAP — Neumorphic Design System
+   Global CSS Custom Properties + Utilities
+   ========================================= */
+
+/* Light Mode */
+:root {
+  --bg: #e0e5ec;
+  --text: #333344;
+  --text-secondary: #6b7280;
+  --shadow-high: -9px -9px 16px rgba(255, 255, 255, 0.7);
+  --shadow-low: 9px 9px 16px rgba(163, 177, 198, 0.6);
+  --shadow-inset-high: inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+  --shadow-inset-low: inset 4px 4px 8px rgba(163, 177, 198, 0.6);
+  --accent: #6c63ff;
+  --accent-light: rgba(108, 99, 255, 0.15);
+  --accent-dark: #5a52d5;
+  --danger: #e17055;
+  --danger-light: rgba(225, 112, 85, 0.15);
+  --success: #00b894;
+  --border-radius: 16px;
+  --border-radius-sm: 8px;
+  --transition: 0.3s ease;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+  --bg: #2d3436;
+  --text: #dfe6e9;
+  --text-secondary: #b2bec3;
+  --shadow-high: -9px -9px 16px rgba(255, 255, 255, 0.05);
+  --shadow-low: 9px 9px 16px rgba(0, 0, 0, 0.5);
+  --shadow-inset-high: inset -4px -4px 8px rgba(255, 255, 255, 0.03);
+  --shadow-inset-low: inset 4px 4px 8px rgba(0, 0, 0, 0.4);
+  --accent: #a29bfe;
+  --accent-light: rgba(162, 155, 254, 0.15);
+  --accent-dark: #8c7ff5;
+  --danger: #e17055;
+  --danger-light: rgba(225, 112, 85, 0.12);
+  --success: #55efc4;
+}
+
+/* =========================================
+   Global Reset
+   ========================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+   Neumorphic Utility Classes
+   ========================================= */
+
+/* Raised card — sits above the background */
+.neu-card {
+  background: var(--bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-high), var(--shadow-low);
+  padding: 1.5rem;
+  transition: box-shadow var(--transition), background var(--transition);
+}
+
+/* Inset element — pressed into the background */
+.neu-inset {
+  background: var(--bg);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-inset-high), var(--shadow-inset-low);
+  transition: box-shadow var(--transition), background var(--transition);
+}
+
+/* =========================================
+   Form Elements
+   ========================================= */
+input,
+textarea,
+select {
+  background: var(--bg);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-inset-high), var(--shadow-inset-low);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+  padding: 0.75rem 1rem;
+  transition: box-shadow var(--transition), background var(--transition);
+  width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  box-shadow: var(--shadow-inset-high), var(--shadow-inset-low),
+    0 0 0 2px var(--accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Range input reset */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  height: 4px;
+  padding: 0;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--accent-light);
+  border-radius: 4px;
+  height: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--accent);
+  border-radius: 50%;
+  height: 14px;
+  margin-top: -5px;
+  width: 14px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-track {
+  background: var(--accent-light);
+  border-radius: 4px;
+  height: 4px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
+}
+
+/* =========================================
+   Typography Helpers
+   ========================================= */
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* =========================================
+   Layout Helpers
+   ========================================= */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-sm {
+  gap: 0.5rem;
+}
+
+.gap-md {
+  gap: 1rem;
+}
+
+.gap-lg {
+  gap: 1.5rem;
+}
+
+/* =========================================
+   Main Content Layout
+   ========================================= */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  transition: padding var(--transition);
+}
+
+.main-content.with-nav {
+  padding-top: calc(64px + 1.5rem); /* NavBar height + gap */
+}
+
+.main-content.with-player {
+  padding-bottom: calc(90px + 1.5rem); /* AudioPlayer height + gap */
+}
+
+/* =========================================
+   Scrollbar Styling
+   ========================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+  opacity: 0.5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.8;
+}
+
+/* =========================================
+   Responsive Breakpoints Reference
+   Mobile:  < 768px  (default, single column)
+   Tablet:  768px+   (2-3 cols)
+   Desktop: 1200px+  (4+ cols)
+   ========================================= */
