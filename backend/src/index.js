@@ -5,6 +5,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const { authMiddleware } = require('./middleware/auth');
+const firstRunMiddleware = require('./middleware/firstRun');
 
 // Check for default JWT secret and issue a warning if it's being used
 const JWT_SECRET = process.env.JWT_SECRET || 'yap-dev-secret-change-in-prod';
@@ -47,13 +49,27 @@ app.use(cookieParser());
 // ---------------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------------
+
+// Public routes — no first-run enforcement needed.
+// /api/auth handles its own per-route auth (login/logout are public; /me and
+// /change-password carry authMiddleware internally).
+// /api/covers intentionally requires no auth (opaque filenames, low sensitivity).
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/media', require('./routes/media'));
 app.use('/api/covers', require('./routes/covers'));
-app.use('/api/stream', require('./routes/stream'));
-app.use('/api/scan', require('./routes/scan'));
-app.use('/api/user', require('./routes/user'));
-app.use('/api/admin', require('./routes/admin'));
+
+// FIX #1 — Protected routes: authMiddleware + firstRunMiddleware are applied
+// here at the app level so that firstRunMiddleware always runs AFTER a valid
+// JWT has been verified and req.user has been populated.
+//
+// Trade-off: individual route files still carry their own authMiddleware, so
+// JWT verification runs twice for these route groups.  The overhead is
+// negligible (<1 ms) and keeps the route files self-contained.  Remove the
+// per-route authMiddleware calls if you want a single verification point.
+app.use('/api/media',  authMiddleware, firstRunMiddleware, require('./routes/media'));
+app.use('/api/stream', authMiddleware, firstRunMiddleware, require('./routes/stream'));
+app.use('/api/scan',   authMiddleware, firstRunMiddleware, require('./routes/scan'));
+app.use('/api/user',   authMiddleware, firstRunMiddleware, require('./routes/user'));
+app.use('/api/admin',  authMiddleware, firstRunMiddleware, require('./routes/admin'));
 
 // ---------------------------------------------------------------------------
 // Health check (no auth required)
