@@ -7,11 +7,11 @@ const { authMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-const ALLOWED_THEMES = new Set(['light', 'dark']);
+const ALLOWED_THEMES = new Set(['light', 'dark', 'spotify']);
 
 // ---------------------------------------------------------------------------
 // PATCH /api/user/settings  (authenticated)
-// Body: { theme_preference: 'light' | 'dark' }
+// Body: { theme_preference: 'light' | 'dark' | 'spotify' }
 // Updates only the requesting user's settings.
 // ---------------------------------------------------------------------------
 router.patch('/settings', authMiddleware, (req, res) => {

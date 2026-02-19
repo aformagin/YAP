@@ -30,7 +30,7 @@
         <div>
           <span class="settings-row__label">Theme</span>
           <p class="settings-row__hint text-secondary text-sm">
-            Currently: <strong>{{ theme.current === 'dark' ? 'Dark' : 'Light' }}</strong>
+            Currently: <strong>{{ { light: 'Light', dark: 'Dark', spotify: 'Spotify' }[theme.current] ?? 'Light' }}</strong>
           </p>
         </div>
 
@@ -55,6 +55,17 @@
             @click="setTheme('dark')"
           >
             &#9790;
+          </NeumorphicButton>
+
+          <NeumorphicButton
+            variant="icon"
+            class="theme-toggle__btn"
+            :class="{ 'theme-toggle__btn--active': theme.current === 'spotify' }"
+            aria-label="Spotify theme"
+            :aria-pressed="theme.current === 'spotify'"
+            @click="setTheme('spotify')"
+          >
+            &#9835;
           </NeumorphicButton>
         </div>
       </div>
@@ -102,7 +113,7 @@ async function setTheme(value) {
 
   try {
     await theme.save(value);
-    themeSaveMessage.value = `Theme saved: ${value === 'dark' ? 'Dark' : 'Light'}`;
+    themeSaveMessage.value = `Theme saved: ${{ light: 'Light', dark: 'Dark', spotify: 'Spotify' }[value] ?? value}`;
   } catch {
     // Theme is applied visually even if save fails
     themeSaveMessage.value = 'Theme applied (could not save to server).';

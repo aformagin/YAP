@@ -40,6 +40,23 @@
   --success: #55efc4;
 }
 
+/* Spotify Mode — flat black with Spotify green */
+[data-theme="spotify"] {
+  --bg: #121212;
+  --text: #ffffff;
+  --text-secondary: #b3b3b3;
+  --shadow-high: -9px -9px 16px rgba(255, 255, 255, 0.03);
+  --shadow-low: 9px 9px 16px rgba(0, 0, 0, 0.8);
+  --shadow-inset-high: inset -4px -4px 8px rgba(255, 255, 255, 0.02);
+  --shadow-inset-low: inset 4px 4px 8px rgba(0, 0, 0, 0.7);
+  --accent: #1db954;
+  --accent-light: rgba(29, 185, 84, 0.15);
+  --accent-dark: #1aa34a;
+  --danger: #e17055;
+  --danger-light: rgba(225, 112, 85, 0.12);
+  --success: #1db954;
+}
+
 /* =========================================
    Global Reset
    ========================================= */

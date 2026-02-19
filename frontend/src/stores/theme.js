@@ -37,7 +37,7 @@ export const useThemeStore = defineStore('theme', {
      */
     initFromUser(user) {
       const saved = user?.theme_preference;
-      if (saved && (saved === 'light' || saved === 'dark')) {
+      if (saved && (saved === 'light' || saved === 'dark' || saved === 'spotify')) {
         this.apply(saved);
       } else {
         // Respect the OS/browser dark mode preference as default

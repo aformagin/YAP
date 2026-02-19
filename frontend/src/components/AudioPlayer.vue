@@ -43,7 +43,8 @@
           :aria-label="player.isPlaying ? 'Pause' : 'Play'"
           @click="togglePlayPause"
         >
-          <span aria-hidden="true">{{ player.isPlaying ? '&#9646;&#9646;' : '&#9654;' }}</span>
+          <span v-if="player.isPlaying" aria-hidden="true">&#10074;&#10074;</span>
+          <span v-else aria-hidden="true">&#9654;</span>
         </NeumorphicButton>
 
         <NeumorphicButton
@@ -339,7 +340,7 @@ const repeatAriaLabel = computed(() => {
 
 @media (min-width: 1921px) {
   .audio-player__progress {
-    max-width: 45%;
+    max-width: 55%;
   }
 }
 
