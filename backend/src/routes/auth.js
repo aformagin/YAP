@@ -68,45 +68,49 @@ function issueToken(res, user) {
 // FIX #5: async handler — bcrypt.compare releases the event loop between
 //         hash rounds instead of blocking it for ~200 ms per call.
 // ---------------------------------------------------------------------------
-router.post('/login', loginRateLimiter, async (req, res) => {
-  const { username, password } = req.body;
+router.post('/login', loginRateLimiter, async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
 
-  // Input validation
-  if (!username || !password) {
-    return res.status(400).json({ error: 'BadRequest', message: 'username and password are required' });
+    // Input validation
+    if (!username || !password) {
+      return res.status(400).json({ error: 'BadRequest', message: 'username and password are required' });
+    }
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'BadRequest', message: 'Invalid input types' });
+    }
+    if (!validator.isLength(username, { min: 1, max: 64 })) {
+      return res.status(400).json({ error: 'BadRequest', message: 'Invalid username length' });
+    }
+
+    // Lookup user (parameterized query)
+    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+
+    if (!user) {
+      // FIX #5: async constant-time dummy compare — prevents user enumeration
+      // while keeping the event loop free during the bcrypt work.
+      await bcrypt.compare('dummy', '$2b$12$uGqvOB0fOkH1ZZ1xdjQwOe8JrIoYNewc19hXtOD87mpy4V/mQJuAe');
+      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
+    }
+
+    // FIX #5: was bcrypt.compareSync — now non-blocking
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
+    }
+
+    issueToken(res, user);
+
+    return res.status(200).json({
+      id: user.id,
+      username: user.username,
+      is_admin: user.is_admin === 1,
+      must_change_password: user.must_change_password === 1,
+      theme_preference: user.theme_preference,
+    });
+  } catch (err) {
+    next(err);
   }
-  if (typeof username !== 'string' || typeof password !== 'string') {
-    return res.status(400).json({ error: 'BadRequest', message: 'Invalid input types' });
-  }
-  if (!validator.isLength(username, { min: 1, max: 64 })) {
-    return res.status(400).json({ error: 'BadRequest', message: 'Invalid username length' });
-  }
-
-  // Lookup user (parameterized query)
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-
-  if (!user) {
-    // FIX #5: async constant-time dummy compare — prevents user enumeration
-    // while keeping the event loop free during the bcrypt work.
-    await bcrypt.compare('dummy', '$2b$12$uGqvOB0fOkH1ZZ1xdjQwOe8JrIoYNewc19hXtOD87mpy4V/mQJuAe');
-    return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
-  }
-
-  // FIX #5: was bcrypt.compareSync — now non-blocking
-  const passwordMatch = await bcrypt.compare(password, user.password_hash);
-  if (!passwordMatch) {
-    return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
-  }
-
-  issueToken(res, user);
-
-  return res.status(200).json({
-    id: user.id,
-    username: user.username,
-    is_admin: user.is_admin === 1,
-    must_change_password: user.must_change_password === 1,
-    theme_preference: user.theme_preference,
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -145,41 +149,45 @@ router.get('/me', authMiddleware, (req, res) => {
 // FIX #1: issueToken is called after the update so the fresh JWT carries
 //         must_change_password = 0, unblocking the user immediately.
 // ---------------------------------------------------------------------------
-router.post('/change-password', authMiddleware, async (req, res) => {
-  const { old_password, new_password } = req.body;
+router.post('/change-password', authMiddleware, async (req, res, next) => {
+  try {
+    const { old_password, new_password } = req.body;
 
-  if (!old_password || !new_password) {
-    return res.status(400).json({ error: 'BadRequest', message: 'old_password and new_password are required' });
+    if (!old_password || !new_password) {
+      return res.status(400).json({ error: 'BadRequest', message: 'old_password and new_password are required' });
+    }
+    if (typeof old_password !== 'string' || typeof new_password !== 'string') {
+      return res.status(400).json({ error: 'BadRequest', message: 'Invalid input types' });
+    }
+    if (!validator.isLength(new_password, { min: 8, max: 128 })) {
+      return res.status(400).json({ error: 'BadRequest', message: 'New password must be 8–128 characters' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'NotFound', message: 'User not found' });
+    }
+
+    // FIX #5: was bcrypt.compareSync
+    const passwordMatch = await bcrypt.compare(old_password, user.password_hash);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Unauthorized', message: 'Old password is incorrect' });
+    }
+
+    // FIX #5: was bcrypt.hashSync
+    const newHash = await bcrypt.hash(new_password, BCRYPT_ROUNDS);
+    db.prepare(
+      'UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?'
+    ).run(newHash, req.user.id);
+
+    // FIX #1: Re-issue the cookie with must_change_password = 0 so that
+    // firstRunMiddleware releases the user on the very next request.
+    issueToken(res, { ...user, must_change_password: 0 });
+
+    return res.status(200).json({ message: 'Password changed successfully' });
+  } catch (err) {
+    next(err);
   }
-  if (typeof old_password !== 'string' || typeof new_password !== 'string') {
-    return res.status(400).json({ error: 'BadRequest', message: 'Invalid input types' });
-  }
-  if (!validator.isLength(new_password, { min: 8, max: 128 })) {
-    return res.status(400).json({ error: 'BadRequest', message: 'New password must be 8–128 characters' });
-  }
-
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
-  if (!user) {
-    return res.status(404).json({ error: 'NotFound', message: 'User not found' });
-  }
-
-  // FIX #5: was bcrypt.compareSync
-  const passwordMatch = await bcrypt.compare(old_password, user.password_hash);
-  if (!passwordMatch) {
-    return res.status(401).json({ error: 'Unauthorized', message: 'Old password is incorrect' });
-  }
-
-  // FIX #5: was bcrypt.hashSync
-  const newHash = await bcrypt.hash(new_password, BCRYPT_ROUNDS);
-  db.prepare(
-    'UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?'
-  ).run(newHash, req.user.id);
-
-  // FIX #1: Re-issue the cookie with must_change_password = 0 so that
-  // firstRunMiddleware releases the user on the very next request.
-  issueToken(res, { ...user, must_change_password: 0 });
-
-  return res.status(200).json({ message: 'Password changed successfully' });
 });
 
 module.exports = router;
