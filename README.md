@@ -120,6 +120,16 @@ The easiest way to get started is with Docker Compose.
 └── README.md
 ```
 
+## Images of V1
+#### Login Screen
+![Login](README-IMGs/YAP-login.png)
+#### Queue Screen
+![Queue](README-IMGs/YAP-queue.png)
+#### Music Player
+![Player](README-IMGs/YAP-player.png)
+#### Library Screen
+![Library](README-IMGs/YAP-library.png)
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a pull request or open an issue.
