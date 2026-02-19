@@ -130,6 +130,24 @@ The easiest way to get started is with Docker Compose.
 #### Library Screen
 ![Library](README-IMGs/YAP-library.png)
 
+## Rate Limiter
+
+The login endpoint (`POST /api/auth/login`) is protected against brute-force attacks with a rate limit of **10 attempts per IP address per 15-minute window**. Exceeding the limit returns HTTP `429 Too Many Requests`.
+
+> **Reverse-proxy deployments:** If YAP is placed behind a reverse proxy (nginx, Apache, a cloud/hardware load balancer, etc.), all incoming requests will appear to originate from the proxy's IP address unless Express is told to trust the forwarded headers. Without this configuration the rate limiter will apply its limit globally across **all** users rather than individually per client.
+>
+> To fix this, add the following to `backend/src/index.js` before the route definitions:
+>
+> ```js
+> app.set('trust proxy', 1); // trust the first hop (your proxy)
+> ```
+>
+> Use a more specific value (e.g., a CIDR range) in production to avoid IP-spoofing via forged `X-Forwarded-For` headers.
+>
+> If you are **not** using a reverse proxy (direct connections only), no changes are needed and the rate limiter will work correctly out of the box.
+
+The in-memory rate-limit store is reset when the process restarts. For multi-process or multi-container deployments, replace the default store with a shared store such as [`rate-limit-redis`](https://www.npmjs.com/package/rate-limit-redis).
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a pull request or open an issue.

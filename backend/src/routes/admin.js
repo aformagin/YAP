@@ -36,7 +36,9 @@ router.get('/users', authMiddleware, adminMiddleware, (req, res) => {
 // Body: { username, password }
 // Creates a new user with must_change_password = 1.
 // ---------------------------------------------------------------------------
-router.post('/users', authMiddleware, adminMiddleware, (req, res) => {
+// FIX #5: handler is now async — bcrypt.hash releases the event loop between
+// work rounds instead of blocking it for ~200 ms, eliminating the DoS vector.
+router.post('/users', authMiddleware, adminMiddleware, async (req, res) => {
   const { username, password } = req.body;
 
   // Input validation
@@ -65,7 +67,8 @@ router.post('/users', authMiddleware, adminMiddleware, (req, res) => {
     return res.status(409).json({ error: 'Conflict', message: 'Username already taken' });
   }
 
-  const hash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
+  // FIX #5: was bcrypt.hashSync — now non-blocking
+  const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
   const result = db.prepare(
     'INSERT INTO users (username, password_hash, is_admin, must_change_password) VALUES (?, ?, 0, 1)'
   ).run(username, hash);

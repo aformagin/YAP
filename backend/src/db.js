@@ -57,7 +57,12 @@ db.prepare(`
 const stmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
 stmt.run('scanner.scrape_covers', 'false');
 
-// Seed default admin on first run
+// Seed default admin on first run.
+// bcrypt.hashSync is used here intentionally: this code runs synchronously at
+// module-load time (before the HTTP server starts accepting requests), so there
+// is no event loop to block and no DoS risk.  Switching to the async variant
+// would require restructuring db.js as an async module, which is out of scope.
+// See routes/auth.js and routes/admin.js for the async usage in request handlers.
 const row = db.prepare('SELECT count(*) as count FROM users').get();
 if (row.count === 0) {
   const hash = bcrypt.hashSync('YAPAdmin!', 12);

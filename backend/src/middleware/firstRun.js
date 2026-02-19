@@ -4,21 +4,20 @@
  * firstRun middleware
  *
  * Checks whether the authenticated user has must_change_password = 1.
- * If so, only the /api/auth/change-password endpoint is allowed through.
- * All other requests receive a 403 with a prompt to change password first.
+ * If so, all requests are blocked with a 403 response prompting the user to
+ * change their password first.
  *
- * This middleware must be applied AFTER authMiddleware.
+ * Middleware chain (see index.js lines 68-72):
+ *   authMiddleware (app-level) → firstRunMiddleware (app-level) → route handler
+ *
+ * authMiddleware always runs before this middleware and either populates
+ * req.user or returns a 401 response.  By the time this middleware executes,
+ * req.user is guaranteed to be set.
+ *
+ * Requires must_change_password to be present in the JWT payload — ensured by
+ * the updated issueToken() in routes/auth.js and authMiddleware in auth.js.
  */
 function firstRunMiddleware(req, res, next) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  // Allow access to change-password endpoint unconditionally
-  if (req.path === '/change-password' || req.originalUrl.endsWith('/change-password')) {
-    return next();
-  }
-
   if (req.user.must_change_password === 1) {
     return res.status(403).json({
       error: 'PasswordChangeRequired',
