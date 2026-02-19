@@ -28,8 +28,8 @@ With YAP I am aiming to streamline that into a single application that meets my 
 
 * ~~Album Art scraping and display on tracks~~ - Finished 
 * Add more in depth queue management 
-* Selected theme persistence
-* Video/Podcast Player
+* ~~Selected theme persistence~~
+* ~~Video/Podcast Player~~ - Implemented with limited features, no artwork, certain formats do not work or are limited due to DirectPlay
 * Music Tabs & Embedded Sheet Music
 
 ## Tech Stack
