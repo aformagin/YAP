@@ -15,6 +15,7 @@ services:
       # Paths inside the container; both land in the yap-data named volume.
       DB_PATH:    /data/yap_media.db
       COVERS_DIR: /data/covers
+      VIDEO_DIR:  /videos
       # Not strictly needed behind the nginx proxy, but kept for direct-access scenarios.
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
     volumes:
@@ -23,6 +24,9 @@ services:
       # Mount your music library read-only.
       # Set MUSIC_DIR in .env or export it before running docker compose.
       - ${MUSIC_DIR:-./music}:/music:ro
+      # Mount your video library read-only.
+      # Set VIDEO_DIR in .env or export it before running docker compose.
+      - ${VIDEO_DIR:-./videos}:/videos:ro
     # Backend is not exposed directly — all traffic routes through nginx.
     expose:
       - "3000"

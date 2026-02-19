@@ -234,18 +234,95 @@
     </section>
 
     <!-- ============================================================
-         SECTION 3: App Settings
+         SECTION 3: Video Library Scan
+         ============================================================ -->
+    <section class="admin-section neu-card" aria-labelledby="video-scan-heading">
+      <h2 id="video-scan-heading" class="admin-section__title">Video Library Scan</h2>
+
+      <!-- Scan progress (shown while scanning) -->
+      <div
+        v-if="videoScanStatus.scanning"
+        class="scan-progress"
+        role="status"
+        aria-live="polite"
+        :aria-label="`Scanning: ${videoScanStatus.current} of ${videoScanStatus.total} files`"
+      >
+        <div class="scan-progress__text">
+          <span>Scanning…</span>
+          <span class="font-semibold">
+            {{ videoScanStatus.current }} / {{ videoScanStatus.total || '?' }} files
+          </span>
+        </div>
+        <div class="scan-progress__bar-wrap neu-inset" aria-hidden="true">
+          <div
+            class="scan-progress__bar"
+            :style="{ width: videoScanProgressPercent + '%' }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Video scan form -->
+      <form
+        class="scan-form"
+        @submit.prevent="handleVideoScan"
+        novalidate
+        aria-label="Scan video library form"
+      >
+        <div class="form-group">
+          <label for="video-scan-directory" class="form-label">Video Directory Path</label>
+          <input
+            id="video-scan-directory"
+            v-model="videoScanDirectory"
+            type="text"
+            class="neu-inset"
+            placeholder="/path/to/videos  or  C:\Videos"
+            autocomplete="off"
+            :disabled="videoScanStatus.scanning || videoScanLoading"
+            aria-required="true"
+            aria-describedby="video-scan-dir-hint"
+          />
+          <span id="video-scan-dir-hint" class="form-hint text-secondary text-xs">
+            Enter the full path to the directory containing your video files.
+          </span>
+        </div>
+
+        <div
+          v-if="videoScanError"
+          class="admin-alert admin-alert--error"
+          role="alert"
+        >
+          {{ videoScanError }}
+        </div>
+
+        <NeumorphicButton
+          type="submit"
+          variant="primary"
+          :disabled="videoScanStatus.scanning || videoScanLoading || !videoScanDirectory.trim()"
+          :aria-busy="videoScanStatus.scanning || videoScanLoading"
+        >
+          <span v-if="videoScanStatus.scanning">&#8987; Scanning…</span>
+          <span v-else-if="videoScanLoading">Starting…</span>
+          <span v-else>&#127916; Scan Videos</span>
+        </NeumorphicButton>
+      </form>
+    </section>
+
+    <!-- ============================================================
+         SECTION 4: App Settings
          ============================================================ -->
     <section class="admin-section neu-card" aria-labelledby="settings-heading">
       <h2 id="settings-heading" class="admin-section__title">Settings</h2>
       <div class="form-group">
-        <label for="scrape-covers" class="form-label">Scrape cover art</label>
-        <input
-          id="scrape-covers"
-          type="checkbox"
-          :checked="settings['scanner.scrape_covers'] === 'true'"
-          @change="updateSetting('scanner.scrape_covers', $event.target.checked.toString())"
-        />
+        <div class="checkbox-row">
+          <input
+            id="scrape-covers"
+            type="checkbox"
+            class="checkbox-input"
+            :checked="settings['scanner.scrape_covers'] === 'true'"
+            @change="updateSetting('scanner.scrape_covers', $event.target.checked.toString())"
+          />
+          <label for="scrape-covers" class="form-label">Scrape cover art</label>
+        </div>
         <span class="form-hint text-secondary text-xs">
           When enabled, the scanner will attempt to fetch cover art from MusicBrainz.
           This will significantly slow down the scanning process.
@@ -259,6 +336,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useUserAuthStore } from '../stores/userAuth.js';
 import { getAdminUsers, createUser, deleteUser, triggerScan, getScanStatus } from '../api/user.js';
+import { scanVideos, getVideoScanStatus } from '../api/video.js';
 import { getSettings, updateSetting as apiUpdateSetting } from '../api/admin.js';
 import NeumorphicButton from '../components/NeumorphicButton.vue';
 import LocalModeBadge from '../components/LocalModeBadge.vue';
@@ -427,9 +505,61 @@ async function handleScan() {
   }
 }
 
+// ---- Video library scan ----
+const videoScanDirectory = ref('');
+const videoScanLoading = ref(false);
+const videoScanError = ref('');
+const videoScanStatus = reactive({
+  scanning: false,
+  current: 0,
+  total: 0,
+});
+
+let videoScanPollInterval = null;
+
+const videoScanProgressPercent = computed(() => {
+  if (!videoScanStatus.total) return 0;
+  return Math.min(100, Math.round((videoScanStatus.current / videoScanStatus.total) * 100));
+});
+
+async function pollVideoScanStatus() {
+  try {
+    const res = await getVideoScanStatus();
+    const data = res.data;
+    videoScanStatus.scanning = data.scanning ?? false;
+    videoScanStatus.current = data.processedFiles ?? 0;
+    videoScanStatus.total = data.totalFiles ?? 0;
+
+    if (!videoScanStatus.scanning && videoScanPollInterval) {
+      clearInterval(videoScanPollInterval);
+      videoScanPollInterval = null;
+    }
+  } catch {
+    // Silently ignore — video scan status is non-critical
+  }
+}
+
+async function handleVideoScan() {
+  if (!videoScanDirectory.value.trim()) return;
+  videoScanError.value = '';
+  videoScanLoading.value = true;
+
+  try {
+    await scanVideos(videoScanDirectory.value.trim());
+    videoScanStatus.scanning = true;
+    if (videoScanPollInterval) clearInterval(videoScanPollInterval);
+    videoScanPollInterval = setInterval(pollVideoScanStatus, 2000);
+  } catch (err) {
+    videoScanError.value = err.response?.data?.message || 'Failed to start scan. Check the directory path.';
+  } finally {
+    videoScanLoading.value = false;
+  }
+}
+
 onMounted(() => {
   fetchUsers();
   pollScanStatus(); // Get initial status immediately
+  pollVideoScanStatus();
   fetchSettings();
 });
 
@@ -437,6 +567,10 @@ onUnmounted(() => {
   if (scanPollInterval) {
     clearInterval(scanPollInterval);
     scanPollInterval = null;
+  }
+  if (videoScanPollInterval) {
+    clearInterval(videoScanPollInterval);
+    videoScanPollInterval = null;
   }
 });
 </script>
@@ -707,6 +841,26 @@ onUnmounted(() => {
 
 .form-hint {
   margin-top: 0.2rem;
+}
+
+/* ---- Checkbox row ---- */
+.checkbox-row {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.checkbox-input {
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  height: 1rem;
+  width: 1rem;
+}
+
+.checkbox-row .form-label {
+  cursor: pointer;
+  margin: 0;
 }
 
 /* Disabled state */

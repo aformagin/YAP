@@ -15,6 +15,11 @@
           </RouterLink>
         </li>
         <li>
+          <RouterLink to="/videos" class="navbar__link" active-class="navbar__link--active">
+            Videos
+          </RouterLink>
+        </li>
+        <li>
           <RouterLink to="/queue" class="navbar__link" active-class="navbar__link--active">
             Queue
           </RouterLink>
@@ -73,6 +78,16 @@
               @click="closeMobile"
             >
               &#127925; Library
+            </RouterLink>
+          </li>
+          <li>
+            <RouterLink
+              to="/videos"
+              class="navbar__mobile-link"
+              active-class="navbar__mobile-link--active"
+              @click="closeMobile"
+            >
+              &#127916; Videos
             </RouterLink>
           </li>
           <li>

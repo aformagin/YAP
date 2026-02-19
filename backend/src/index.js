@@ -70,6 +70,7 @@ app.use('/api/stream', authMiddleware, firstRunMiddleware, require('./routes/str
 app.use('/api/scan',   authMiddleware, firstRunMiddleware, require('./routes/scan'));
 app.use('/api/user',   authMiddleware, firstRunMiddleware, require('./routes/user'));
 app.use('/api/admin',  authMiddleware, firstRunMiddleware, require('./routes/admin'));
+app.use('/api/videos', authMiddleware, firstRunMiddleware, require('./routes/video'));
 
 // ---------------------------------------------------------------------------
 // Health check (no auth required)

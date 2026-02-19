@@ -57,6 +57,18 @@ db.prepare(`
 const stmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
 stmt.run('scanner.scrape_covers', 'false');
 
+// Videos table
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename TEXT NOT NULL,
+    path TEXT UNIQUE NOT NULL,
+    format TEXT,
+    added_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
+db.prepare('CREATE INDEX IF NOT EXISTS idx_videos_format ON videos(format)').run();
+
 // Seed default admin on first run.
 // bcrypt.hashSync is used here intentionally: this code runs synchronously at
 // module-load time (before the HTTP server starts accepting requests), so there

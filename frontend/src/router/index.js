@@ -27,6 +27,11 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/videos',
+    component: () => import('../views/VideoLibrary.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/settings',
     component: () => import('../views/SettingsView.vue'),
     meta: { requiresAuth: true },
