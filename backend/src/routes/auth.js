@@ -88,7 +88,7 @@ router.post('/login', loginRateLimiter, async (req, res) => {
   if (!user) {
     // FIX #5: async constant-time dummy compare — prevents user enumeration
     // while keeping the event loop free during the bcrypt work.
-    await bcrypt.compare('dummy', '$2b$12$invalidhashpaddingtomatch32chars12345678');
+    await bcrypt.compare('dummy', '$2b$12$uGqvOB0fOkH1ZZ1xdjQwOe8JrIoYNewc19hXtOD87mpy4V/mQJuAe');
     return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
   }
 
