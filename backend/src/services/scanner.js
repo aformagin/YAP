@@ -131,13 +131,12 @@ async function runScan(directory) {
 
       if (meta) {
         const row = upsertMedia(filePath, meta);
+        const { value: scrape } = db.prepare('SELECT value FROM settings WHERE key = ?').get('scanner.scrape_covers');
 
-        // Attempt cover art fetch if artist + album are known
-        if (row && meta.artist && meta.album && !row.cover_path) {
+        // Attempt cover art fetch if artist + album are known and scraping is enabled
+        if (scrape === 'true' && row && meta.artist && meta.album && !row.cover_path) {
           // Do not await — fire-and-forget to keep scan responsive
-          scraper.fetchCoverArt(meta.artist, meta.album, row.id).catch((err) => {
-            console.warn(`[Scanner] Cover art error: ${err.message}`);
-          });
+          await scraper.fetchCoverArt(meta.artist, meta.album, row.id);
         }
       }
 

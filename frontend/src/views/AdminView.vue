@@ -232,6 +232,26 @@
         </NeumorphicButton>
       </form>
     </section>
+
+    <!-- ============================================================
+         SECTION 3: App Settings
+         ============================================================ -->
+    <section class="admin-section neu-card" aria-labelledby="settings-heading">
+      <h2 id="settings-heading" class="admin-section__title">Settings</h2>
+      <div class="form-group">
+        <label for="scrape-covers" class="form-label">Scrape cover art</label>
+        <input
+          id="scrape-covers"
+          type="checkbox"
+          :checked="settings['scanner.scrape_covers'] === 'true'"
+          @change="updateSetting('scanner.scrape_covers', $event.target.checked.toString())"
+        />
+        <span class="form-hint text-secondary text-xs">
+          When enabled, the scanner will attempt to fetch cover art from MusicBrainz.
+          This will significantly slow down the scanning process.
+        </span>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -239,10 +259,38 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useUserAuthStore } from '../stores/userAuth.js';
 import { getAdminUsers, createUser, deleteUser, triggerScan, getScanStatus } from '../api/user.js';
+import { getSettings, updateSetting as apiUpdateSetting } from '../api/admin.js';
 import NeumorphicButton from '../components/NeumorphicButton.vue';
 import LocalModeBadge from '../components/LocalModeBadge.vue';
 
 const auth = useUserAuthStore();
+
+// ---- Settings ----
+const settings = reactive({});
+const settingsLoading = ref(false);
+const settingsError = ref('');
+
+async function fetchSettings() {
+  settingsLoading.value = true;
+  settingsError.value = '';
+  try {
+    const res = await getSettings();
+    Object.assign(settings, res.data);
+  } catch (err) {
+    settingsError.value = 'Failed to load settings.';
+  } finally {
+    settingsLoading.value = false;
+  }
+}
+
+async function updateSetting(key, value) {
+  try {
+    await apiUpdateSetting(key, value);
+  } catch (err) {
+    alert('Failed to update setting.');
+  }
+}
+
 
 // ---- User management ----
 const users = ref([]);
@@ -346,8 +394,8 @@ async function pollScanStatus() {
     const res = await getScanStatus();
     const data = res.data;
     scanStatus.scanning = data.scanning ?? false;
-    scanStatus.current = data.current ?? 0;
-    scanStatus.total = data.total ?? 0;
+    scanStatus.current = data.processedFiles ?? 0;
+    scanStatus.total = data.totalFiles ?? 0;
     scanStatus.isOnline = data.isOnline !== false; // default to online if field absent
 
     // Stop polling once scan is complete
@@ -382,6 +430,7 @@ async function handleScan() {
 onMounted(() => {
   fetchUsers();
   pollScanStatus(); // Get initial status immediately
+  fetchSettings();
 });
 
 onUnmounted(() => {
@@ -611,12 +660,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-@media (min-width: 1921px) {
-  .scan-progress {
-    max-width: 60%;
-  }
 }
 
 .scan-progress__text {

@@ -52,13 +52,13 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useUserAuthStore();
 
-  // Step 1: If not authenticated and the route is not public, try to restore session
-  if (!auth.isAuthenticated && !to.meta.public) {
+  // Step 1: Try to restore session if not yet authenticated
+  if (!auth.isAuthenticated) {
     try {
       await auth.fetchMe();
     } catch {
-      // Session restore failed (server returned 401) — send to login
-      return '/login';
+      // Session restore failed — only block access to protected routes
+      if (!to.meta.public) return '/login';
     }
   }
 
@@ -70,6 +70,7 @@ router.beforeEach(async (to) => {
   // Step 3: Force password change before any other navigation
   if (
     auth.isAuthenticated &&
+    auth.user?.is_admin &&
     auth.user?.must_change_password &&
     to.path !== '/change-password'
   ) {

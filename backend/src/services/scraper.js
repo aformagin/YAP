@@ -28,6 +28,14 @@ function sanitizeForFilename(str) {
 }
 
 /**
+ * A simple sleep utility.
+ * @param {number} ms - Milliseconds to sleep
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Check internet connectivity by attempting a HEAD request to MusicBrainz.
  * Result is cached for CONNECTIVITY_CACHE_TTL_MS to reduce overhead.
  * @returns {Promise<boolean>}
@@ -82,6 +90,9 @@ async function fetchCoverArt(artist, album, mediaId) {
   }
 
   try {
+    // MusicBrainz API asks for max 1 req/sec.
+    await sleep(1000);
+
     // Step 1: Search MusicBrainz for the release-group
     const searchUrl = 'https://musicbrainz.org/ws/2/release-group';
     const searchParams = {

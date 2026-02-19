@@ -110,4 +110,38 @@ router.delete('/users/:id', authMiddleware, adminMiddleware, (req, res) => {
   return res.status(200).json({ message: 'User deleted successfully' });
 });
 
+// ---------------------------------------------------------------------------
+// GET /api/admin/settings (admin only)
+// Returns all settings.
+// ---------------------------------------------------------------------------
+router.get('/settings', authMiddleware, adminMiddleware, (req, res) => {
+  const settings = db.prepare('SELECT key, value FROM settings').all();
+  const settingsObj = settings.reduce((acc, { key, value }) => {
+    acc[key] = value;
+    return acc;
+  }, {});
+  return res.status(200).json(settingsObj);
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/admin/settings (admin only)
+// Body: { key, value }
+// ---------------------------------------------------------------------------
+router.patch('/settings', authMiddleware, adminMiddleware, (req, res) => {
+  const { key, value } = req.body;
+
+  if (!key || value === undefined) {
+    return res.status(400).json({ error: 'BadRequest', message: 'key and value are required' });
+  }
+
+  const setting = db.prepare('SELECT key FROM settings WHERE key = ?').get(key);
+  if (!setting) {
+    return res.status(404).json({ error: 'NotFound', message: `Setting '${key}' not found` });
+  }
+
+  db.prepare('UPDATE settings SET value = ? WHERE key = ?').run(value, key);
+
+  return res.status(200).json({ message: 'Setting updated successfully' });
+});
+
 module.exports = router;

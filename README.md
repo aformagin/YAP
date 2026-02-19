@@ -4,6 +4,15 @@
 
 YAP is a free and open-source, self-hosted media player and server, with a focus on music. The goal of this application is to allow people to host music and media on local networks that do not have access to a WAN (Offline).
 
+### Personal Statement on the purpose of this project
+
+I often find myself camping or in areas with limited internet access, but still want to play music or video from mulitple devices, or provide tabs/sheet music for during a jam session. 
+
+In the past I have used a combination of different apps such as Jellyfin and Navidrome running on a Pi Router. It felt inconvenient to navigate manually between the pages, which lead me to writing a simple webpage to stitch them together with redirects. After that I figured I wanted a way to host and share music sheets and tabs when going to a jam, so I wrote a PHP web application I called "MusicBox". This app added redirect links to video and music servers, and hosted a dynamic list of guitar and harmonica tabs that could be added to with text files through FTP. Ultimately it was clunky and ugly. 
+
+With YAP I am aiming to streamline that into a single application that meets my niche needs.
+
+
 ## Features
 
 - **Self-hosted:** Host your own music server on your own hardware.
@@ -13,7 +22,15 @@ YAP is a free and open-source, self-hosted media player and server, with a focus
 - **Audio Streaming:** Stream music directly from your server to your browser.
 - **User Authentication:** Protect your music library with a username and password.
 - **Album Art:** Automatically scrapes album art for your music.
-- **Queue Management:** Queue up tracks to play next.
+- **Queue Management:** Queue up tracks to play next. (Coming Soon)
+
+## TODO 
+
+* ~~Album Art scraping and display on tracks~~ - Finished 
+* Add more in depth queue management 
+* Selected theme persistence
+* Video/Podcast Player
+* Music Tabs & Embedded Sheet Music
 
 ## Tech Stack
 

@@ -45,6 +45,18 @@ db.prepare('CREATE INDEX IF NOT EXISTS idx_media_artist ON media(artist)').run()
 db.prepare('CREATE INDEX IF NOT EXISTS idx_media_album ON media(album)').run();
 db.prepare('CREATE INDEX IF NOT EXISTS idx_media_title ON media(title)').run();
 
+// Settings table
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY NOT NULL,
+    value TEXT
+  )
+`).run();
+
+// Seed default settings
+const stmt = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
+stmt.run('scanner.scrape_covers', 'false');
+
 // Seed default admin on first run
 const row = db.prepare('SELECT count(*) as count FROM users').get();
 if (row.count === 0) {

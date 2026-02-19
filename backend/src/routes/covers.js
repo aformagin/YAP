@@ -6,8 +6,8 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// Absolute path to the covers cache directory
-const COVERS_DIR = path.resolve(__dirname, '..', '..', '.cache', 'covers');
+// Absolute path to the covers cache directory — must match the scraper's COVERS_DIR
+const COVERS_DIR = process.env.COVERS_DIR || path.resolve(__dirname, '..', '..', '.cache', 'covers');
 
 // ---------------------------------------------------------------------------
 // GET /api/covers/:filename

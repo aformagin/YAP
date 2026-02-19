@@ -45,10 +45,10 @@
   --bg: #121212;
   --text: #ffffff;
   --text-secondary: #b3b3b3;
-  --shadow-high: -9px -9px 16px rgba(255, 255, 255, 0.03);
-  --shadow-low: 9px 9px 16px rgba(0, 0, 0, 0.8);
-  --shadow-inset-high: inset -4px -4px 8px rgba(255, 255, 255, 0.02);
-  --shadow-inset-low: inset 4px 4px 8px rgba(0, 0, 0, 0.7);
+  --shadow-high: 0 0 0 transparent;
+  --shadow-low: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-inset-high: inset 0 0 0 transparent;
+  --shadow-inset-low: inset 0 2px 8px rgba(0, 0, 0, 0.6);
   --accent: #1db954;
   --accent-light: rgba(29, 185, 84, 0.15);
   --accent-dark: #1aa34a;

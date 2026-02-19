@@ -62,7 +62,7 @@
           {{ formatTime(player.currentTime) }}
         </span>
 
-        <div class="audio-player__seek-wrap neu-inset">
+        <div class="audio-player__seek-wrap">
           <input
             type="range"
             class="audio-player__seek"
@@ -74,14 +74,9 @@
             :aria-valuemax="player.duration"
             :aria-valuenow="Math.floor(player.currentTime)"
             :aria-valuetext="`${formatTime(player.currentTime)} of ${formatTime(player.duration)}`"
+            :style="{ '--seek-fill': progressPercent + '%' }"
             @input="onSeekInput"
             @change="onSeekCommit"
-          />
-          <!-- Visual progress fill overlay -->
-          <div
-            class="audio-player__seek-fill"
-            :style="{ width: progressPercent + '%' }"
-            aria-hidden="true"
           />
         </div>
 
@@ -358,27 +353,53 @@ const repeatAriaLabel = computed(() => {
 
 .audio-player__seek-wrap {
   flex: 1;
-  padding: 0.5rem 0.75rem;
-  position: relative;
 }
 
 .audio-player__seek {
-  position: relative;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  height: 20px;
   width: 100%;
-  z-index: 2;
 }
 
-.audio-player__seek-fill {
+.audio-player__seek::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    var(--accent) var(--seek-fill, 0%),
+    rgba(128, 128, 128, 0.35) var(--seek-fill, 0%)
+  );
+  border-radius: 4px;
+  height: 4px;
+}
+
+.audio-player__seek::-moz-range-track {
+  background: rgba(128, 128, 128, 0.35);
+  border-radius: 4px;
+  height: 4px;
+}
+
+.audio-player__seek::-moz-range-progress {
   background: var(--accent);
   border-radius: 4px;
-  bottom: calc(50% - 2px);
   height: 4px;
-  left: 0.75rem;
-  max-width: calc(100% - 1.5rem);
-  pointer-events: none;
-  position: absolute;
-  top: calc(50% - 2px);
-  z-index: 1;
+}
+
+.audio-player__seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: var(--accent);
+  border-radius: 50%;
+  height: 14px;
+  margin-top: -5px;
+  width: 14px;
+}
+
+.audio-player__seek::-moz-range-thumb {
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
 }
 
 /* ---- Secondary controls (right) ---- */
