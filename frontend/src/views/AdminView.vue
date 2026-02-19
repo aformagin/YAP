@@ -129,15 +129,17 @@
             </span>
           </div>
 
-          <NeumorphicButton
-            type="submit"
-            variant="primary"
-            :disabled="addUserLoading"
-            :aria-busy="addUserLoading"
-          >
-            <span v-if="addUserLoading">&#8987; Creating…</span>
-            <span v-else>&#43; Add User</span>
-          </NeumorphicButton>
+          <div class="add-user-form__submit">
+            <NeumorphicButton
+              type="submit"
+              variant="primary"
+              :disabled="addUserLoading"
+              :aria-busy="addUserLoading"
+            >
+              <span v-if="addUserLoading">&#8987; Creating…</span>
+              <span v-else>&#43; Add User</span>
+            </NeumorphicButton>
+          </div>
         </form>
       </div>
     </section>
@@ -542,12 +544,17 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 .add-user-form__fields .form-group {
   flex: 1;
   min-width: 180px;
+}
+
+/* Push the button down to align with the inputs (clear the label + gap above) */
+.add-user-form__submit {
+  padding-top: calc(0.875rem * 1.5 + 0.4rem);
 }
 
 /* ---- Alerts ---- */
@@ -604,6 +611,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+@media (min-width: 1921px) {
+  .scan-progress {
+    max-width: 60%;
+  }
 }
 
 .scan-progress__text {

@@ -210,9 +210,9 @@ function formatTime(secs) {
 
 // --- Volume icon ---
 const volumeIcon = computed(() => {
-  if (player.volume === 0) return '&#128263;';
-  if (player.volume < 0.5) return '&#128264;';
-  return '&#128266;';
+  if (player.volume === 0) return '🔇';
+  if (player.volume < 0.5) return '🔈';
+  return '🔊';
 });
 
 // --- Repeat ARIA label ---
@@ -335,6 +335,12 @@ const repeatAriaLabel = computed(() => {
   display: flex;
   gap: 0.5rem;
   width: 100%;
+}
+
+@media (min-width: 1921px) {
+  .audio-player__progress {
+    max-width: 45%;
+  }
 }
 
 .audio-player__time {

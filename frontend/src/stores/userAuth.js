@@ -23,7 +23,7 @@ export const useUserAuthStore = defineStore('userAuth', {
      */
     async login(username, password) {
       const response = await apiLogin(username, password);
-      this.user = response.data.user;
+      this.user = response.data.user ?? response.data;
       this.isAuthenticated = true;
       return response.data;
     },

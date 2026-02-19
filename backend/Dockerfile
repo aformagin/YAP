@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
 # Build tools required for better-sqlite3's native bindings
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ wget
 
 WORKDIR /app
 
