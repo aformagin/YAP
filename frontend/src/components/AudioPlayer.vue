@@ -44,7 +44,7 @@
           @click="togglePlayPause"
         >
           <span v-if="player.isPlaying" aria-hidden="true">&#10074;&#10074;</span>
-          <span v-else aria-hidden="true">&#9654;</span>
+          <span v-else class="play-icon" aria-hidden="true">&#9654;</span>
         </NeumorphicButton>
 
         <NeumorphicButton
@@ -323,6 +323,11 @@ const repeatAriaLabel = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ▶ sits visually left of its glyph centre — nudge it right */
+.audio-player__play-btn .play-icon {
+  margin-left: 3px;
 }
 
 /* ---- Progress ---- */
