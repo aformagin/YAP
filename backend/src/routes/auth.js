@@ -15,7 +15,7 @@ const COOKIE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const BCRYPT_ROUNDS = 12;
 
 // ---------------------------------------------------------------------------
-// FIX #4 — Brute-force protection on the login endpoint.
+// FIX #4 - Brute-force protection on the login endpoint.
 // 10 attempts per IP per 15-minute window before a 429 is returned.
 // express-rate-limit operates in memory by default; swap the `store` option
 // for a Redis-backed store if you scale to multiple processes.
@@ -32,7 +32,7 @@ const loginRateLimiter = rateLimit({
 });
 
 // ---------------------------------------------------------------------------
-// FIX #1 — issueToken now embeds must_change_password in the JWT payload.
+// FIX #1 - issueToken now embeds must_change_password in the JWT payload.
 //
 // Root cause of the broken first-run enforcement: the payload only ever
 // contained { id, username, is_admin }.  authMiddleware mirrored that into
@@ -65,7 +65,7 @@ function issueToken(res, user) {
 // ---------------------------------------------------------------------------
 // POST /api/auth/login
 // FIX #4: loginRateLimiter is the first middleware in the chain.
-// FIX #5: async handler — bcrypt.compare releases the event loop between
+// FIX #5: async handler - bcrypt.compare releases the event loop between
 //         hash rounds instead of blocking it for ~200 ms per call.
 // ---------------------------------------------------------------------------
 router.post('/login', loginRateLimiter, async (req, res) => {
@@ -86,13 +86,13 @@ router.post('/login', loginRateLimiter, async (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
 
   if (!user) {
-    // FIX #5: async constant-time dummy compare — prevents user enumeration
+    // FIX #5: async constant-time dummy compare - prevents user enumeration
     // while keeping the event loop free during the bcrypt work.
     await bcrypt.compare('dummy', '$2b$12$invalidhashpaddingtomatch32chars12345678');
     return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
   }
 
-  // FIX #5: was bcrypt.compareSync — now non-blocking
+  // FIX #5: was bcrypt.compareSync - now non-blocking
   const passwordMatch = await bcrypt.compare(password, user.password_hash);
   if (!passwordMatch) {
     return res.status(401).json({ error: 'Unauthorized', message: 'Invalid credentials' });
@@ -141,7 +141,7 @@ router.get('/me', authMiddleware, (req, res) => {
 
 // ---------------------------------------------------------------------------
 // POST /api/auth/change-password  (authenticated)
-// FIX #5: async handler — all bcrypt calls are now non-blocking.
+// FIX #5: async handler - all bcrypt calls are now non-blocking.
 // FIX #1: issueToken is called after the update so the fresh JWT carries
 //         must_change_password = 0, unblocking the user immediately.
 // ---------------------------------------------------------------------------

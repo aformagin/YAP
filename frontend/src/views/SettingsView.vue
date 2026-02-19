@@ -27,47 +27,19 @@
       <h2 id="theme-heading" class="settings-section__title">Appearance</h2>
 
       <div class="settings-row">
-        <div>
-          <span class="settings-row__label">Theme</span>
-          <p class="settings-row__hint text-secondary text-sm">
-            Currently: <strong>{{ { light: 'Light', dark: 'Dark', spotify: 'Spotify' }[theme.current] ?? 'Light' }}</strong>
-          </p>
-        </div>
+        <label for="theme-select" class="settings-row__label">Theme</label>
 
-        <div class="theme-toggle" role="group" aria-label="Choose theme">
-          <NeumorphicButton
-            variant="icon"
-            class="theme-toggle__btn"
-            :class="{ 'theme-toggle__btn--active': theme.current === 'light' }"
-            aria-label="Light theme"
-            :aria-pressed="theme.current === 'light'"
-            @click="setTheme('light')"
-          >
-            &#9728;
-          </NeumorphicButton>
-
-          <NeumorphicButton
-            variant="icon"
-            class="theme-toggle__btn"
-            :class="{ 'theme-toggle__btn--active': theme.current === 'dark' }"
-            aria-label="Dark theme"
-            :aria-pressed="theme.current === 'dark'"
-            @click="setTheme('dark')"
-          >
-            &#9790;
-          </NeumorphicButton>
-
-          <NeumorphicButton
-            variant="icon"
-            class="theme-toggle__btn"
-            :class="{ 'theme-toggle__btn--active': theme.current === 'spotify' }"
-            aria-label="Spotify theme"
-            :aria-pressed="theme.current === 'spotify'"
-            @click="setTheme('spotify')"
-          >
-            &#9835;
-          </NeumorphicButton>
-        </div>
+        <select
+          id="theme-select"
+          class="theme-select neu-inset"
+          :value="theme.current"
+          @change="setTheme($event.target.value)"
+          aria-label="Choose theme"
+        >
+          <option value="dark">YAP Dark</option>
+          <option value="light">YAP Light</option>
+          <option value="spotify">YAPify</option>
+        </select>
       </div>
 
       <!-- Success feedback -->
@@ -100,7 +72,6 @@ import { useRouter } from 'vue-router';
 import { useUserAuthStore } from '../stores/userAuth.js';
 import { useThemeStore } from '../stores/theme.js';
 import NeumorphicButton from '../components/NeumorphicButton.vue';
-
 const router = useRouter();
 const auth = useUserAuthStore();
 const theme = useThemeStore();
@@ -113,7 +84,8 @@ async function setTheme(value) {
 
   try {
     await theme.save(value);
-    themeSaveMessage.value = `Theme saved: ${{ light: 'Light', dark: 'Dark', spotify: 'Spotify' }[value] ?? value}`;
+    const THEME_LABELS = { dark: 'YAP Dark', light: 'YAP Light', spotify: 'YAPify' };
+    themeSaveMessage.value = `Theme saved: ${THEME_LABELS[value] ?? value}`;
   } catch {
     // Theme is applied visually even if save fails
     themeSaveMessage.value = 'Theme applied (could not save to server).';
@@ -198,18 +170,30 @@ async function setTheme(value) {
   text-transform: uppercase;
 }
 
-/* ---- Theme toggle ---- */
-.theme-toggle {
-  display: flex;
-  gap: 0.5rem;
+/* ---- Theme select ---- */
+.theme-select {
+  appearance: none;
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-width: 10rem;
+  padding: 0.5rem 2.25rem 0.5rem 0.875rem;
 }
 
-.theme-toggle__btn {
-  font-size: 1.2rem;
+.theme-select option {
+  background-color: var(--bg);
+  color: var(--text);
 }
 
-.theme-toggle__btn--active {
-  box-shadow: var(--shadow-inset-high), var(--shadow-inset-low);
-  color: var(--accent);
+.theme-select:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
 }
 </style>

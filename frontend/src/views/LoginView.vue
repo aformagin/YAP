@@ -138,7 +138,7 @@ async function handleLogin() {
     const data = await auth.login(username.value.trim(), password.value);
 
     // Initialize theme from the returned user profile
-    theme.initFromUser(data.user);
+    theme.initFromUser(data);
 
     // If the user must change their password, the router guard will redirect.
     // Otherwise push to library explicitly.
